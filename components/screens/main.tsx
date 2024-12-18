@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, StatusBar, TouchableOpacity } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTheme } from '@/components/screens/themeContext'; // Usar el hook del tema
 
 const Main = () => {
+  const { isDarkMode } = useTheme(); // Accede al estado del tema (modo oscuro)
   const [startTime, setStartTime] = useState('');
   const [duration, setDuration] = useState('');
   const [endTime, setEndTime] = useState('');
@@ -11,11 +14,9 @@ const Main = () => {
     const currentTime = new Date();
     let hours = currentTime.getHours();
     const minutes = currentTime.getMinutes().toString().padStart(2, '0');
-
     const period = hours >= 12 ? 'PM' : 'AM';
     hours = hours % 12 || 12;
     const formattedHours = hours.toString().padStart(2, '0');
-
     setStartTime(`${formattedHours}:${minutes} ${period}`);
   }, []);
 
@@ -42,6 +43,27 @@ const Main = () => {
     setHoursWorked(duration);
   };
 
+  const saveRecord = async () => {
+    const name = `Registro ${new Date().toLocaleString()}`;
+    const newRecord = {
+      name,
+      date: new Date().toLocaleString(),
+      duration,
+      endTime,
+    };
+
+    try {
+      const storedRecords = await AsyncStorage.getItem('records');
+      const records = storedRecords ? JSON.parse(storedRecords) : [];
+      records.push(newRecord);
+      await AsyncStorage.setItem('records', JSON.stringify(records));
+      Alert.alert('Registro guardado', 'El registro se ha guardado correctamente');
+    } catch (error) {
+      console.error('Error guardando el registro:', error);
+      Alert.alert('Error', 'No se pudo guardar el registro');
+    }
+  };
+
   const setAlarm = () => {
     const [hours, minutes] = duration.split(':').map(num => parseInt(num, 10));
     const currentTime = new Date();
@@ -56,34 +78,38 @@ const Main = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#333" />
-      <Text style={styles.headerText}>Registro de Horas</Text>
+    <View style={[styles.container, isDarkMode && styles.darkContainer]}>
+      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} backgroundColor={isDarkMode ? '#333' : '#f0f0f0'} />
+      <Text style={[styles.headerText, isDarkMode && styles.darkText]}>Registro de Horas</Text>
 
       <TextInput
-        style={styles.input}
+        style={[styles.input, isDarkMode && styles.darkInput]}
         placeholder="Hora de inicio (HH:MM AM/PM)"
-        placeholderTextColor="#aaa"
+        placeholderTextColor={isDarkMode ? '#aaa' : '#555'}
         value={startTime}
         editable={false}
       />
       <TextInput
-        style={styles.input}
+        style={[styles.input, isDarkMode && styles.darkInput]}
         placeholder="Duración (HH:MM)"
-        placeholderTextColor="#aaa"
+        placeholderTextColor={isDarkMode ? '#aaa' : '#555'}
         value={duration}
         onChangeText={setDuration}
       />
 
-      <TouchableOpacity style={styles.button} onPress={calculateEndTime}>
+      <TouchableOpacity style={[styles.button, isDarkMode && styles.darkButton]} onPress={calculateEndTime}>
         <Text style={styles.buttonText}>Calcular Hora de Fin</Text>
       </TouchableOpacity>
 
-      <Text style={styles.resultText}>Hora de Fin: {endTime}</Text>
-      <Text style={styles.resultText}>Horas Trabajadas: {hoursWorked}</Text>
+      <Text style={[styles.resultText, isDarkMode && styles.darkText]}>Hora de Fin: {endTime}</Text>
+      <Text style={[styles.resultText, isDarkMode && styles.darkText]}>Horas Trabajadas: {hoursWorked}</Text>
 
       <TouchableOpacity style={[styles.button, styles.alarmButton]} onPress={setAlarm}>
         <Text style={styles.buttonText}>Establecer Alarma</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={[styles.button, styles.saveButton]} onPress={saveRecord}>
+        <Text style={styles.buttonText}>Guardar Registro</Text>
       </TouchableOpacity>
     </View>
   );
@@ -94,16 +120,21 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#222', 
+    backgroundColor: '#222',
     padding: 20,
+  },
+  darkContainer: {
+    backgroundColor: '#333',
   },
   headerText: {
     fontSize: 30,
     fontWeight: 'bold',
-    color: '#fff', 
+    color: '#fff',
     marginBottom: 40,
     textAlign: 'center',
-    fontFamily: 'Arial', 
+  },
+  darkText: {
+    color: '#fff',
   },
   input: {
     height: 50,
@@ -116,24 +147,27 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingHorizontal: 20,
     fontSize: 18,
-    fontFamily: 'Arial', 
+  },
+  darkInput: {
+    backgroundColor: '#444',
   },
   button: {
-    backgroundColor: '#4CAF50', 
+    backgroundColor: '#4CAF50',
     paddingVertical: 15,
     paddingHorizontal: 30,
     borderRadius: 10,
     marginTop: 15,
     width: '100%',
     alignItems: 'center',
-    shadowColor: '#000', 
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    elevation: 5,
+  },
+  darkButton: {
+    backgroundColor: '#2e8b57',
   },
   alarmButton: {
-    backgroundColor: '#FF6347', 
+    backgroundColor: '#FF6347',
+  },
+  saveButton: {
+    backgroundColor: '#8A2BE2',
   },
   buttonText: {
     color: '#fff',
@@ -146,7 +180,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontWeight: '600',
     textAlign: 'center',
-    fontFamily: 'Arial', 
   },
 });
 
