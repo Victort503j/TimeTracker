@@ -1,23 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, StatusBar, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme } from '@/components/screens/themeContext'; // Usar el hook del tema
+import { useTheme } from '@/components/screens/themeContext'; 
 
 const Main = () => {
-  const { isDarkMode } = useTheme(); // Accede al estado del tema (modo oscuro)
+  const { isDarkMode } = useTheme(); 
   const [startTime, setStartTime] = useState('');
   const [duration, setDuration] = useState('');
   const [endTime, setEndTime] = useState('');
   const [hoursWorked, setHoursWorked] = useState('');
 
   useEffect(() => {
-    const currentTime = new Date();
-    let hours = currentTime.getHours();
-    const minutes = currentTime.getMinutes().toString().padStart(2, '0');
-    const period = hours >= 12 ? 'PM' : 'AM';
-    hours = hours % 12 || 12;
-    const formattedHours = hours.toString().padStart(2, '0');
-    setStartTime(`${formattedHours}:${minutes} ${period}`);
+    // Función para actualizar la hora
+    const updateStartTime = () => {
+      const currentTime = new Date();
+      let hours = currentTime.getHours();
+      const minutes = currentTime.getMinutes().toString().padStart(2, '0');
+      const period = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12 || 12;
+      const formattedHours = hours.toString().padStart(2, '0');
+      setStartTime(`${formattedHours}:${minutes} ${period}`);
+    };
+
+    // Actualizar inmediatamente
+    updateStartTime();
+
+    // Configurar un intervalo para actualizar cada minuto
+    const intervalId = setInterval(updateStartTime, 60000);
+
+    // Limpiar el intervalo cuando el componente se desmonte
+    return () => clearInterval(intervalId);
   }, []);
 
   const calculateEndTime = () => {

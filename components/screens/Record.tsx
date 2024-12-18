@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, RefreshControl } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTheme } from '@/components/screens/themeContext';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native'; // Asegúrate de importar esto
 
 interface RecordItem {
   name: string;
@@ -17,22 +18,35 @@ const Record = () => {
   const [allRecords, setAllRecords] = useState<RecordItem[]>([]); 
   const [page, setPage] = useState(1); 
   const [recordsPerPage] = useState(7);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    const getRecords = async () => {
-      try {
-        const savedRecords = await AsyncStorage.getItem('records');
-        if (savedRecords) {
-          const parsedRecords = JSON.parse(savedRecords);
-          parsedRecords.reverse(); 
-          setAllRecords(parsedRecords); 
-          setRecords(parsedRecords.slice(0, recordsPerPage)); 
-        }
-      } catch (error) {
-        console.error('Error al obtener los registros de AsyncStorage:', error);
+  // Función para cargar registros
+  const loadRecords = async () => {
+    try {
+      const savedRecords = await AsyncStorage.getItem('records');
+      if (savedRecords) {
+        const parsedRecords = JSON.parse(savedRecords);
+        parsedRecords.reverse(); 
+        setAllRecords(parsedRecords); 
+        setRecords(parsedRecords.slice(0, recordsPerPage)); 
       }
-    };
-    getRecords();
+    } catch (error) {
+      console.error('Error al obtener los registros de AsyncStorage:', error);
+    }
+  };
+
+  // Usar useFocusEffect para recargar registros cuando el componente está enfocado
+  useFocusEffect(
+    useCallback(() => {
+      loadRecords();
+    }, [])
+  );
+
+  // Añadir un método de refresco manual
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadRecords();
+    setRefreshing(false);
   }, []);
 
   const loadPageRecords = (newPage: number) => {
@@ -51,7 +65,6 @@ const Record = () => {
     setAllRecords(updatedRecords);
     setRecords(updatedRecords.slice(0, recordsPerPage)); 
 
-    // Actualiza AsyncStorage después de eliminar el registro
     AsyncStorage.setItem('records', JSON.stringify(updatedRecords))
       .then(() => {
         Alert.alert('Registro eliminado', 'El registro se ha eliminado correctamente.');
@@ -102,6 +115,16 @@ const Record = () => {
           data={records}
           renderItem={renderRecord}
           keyExtractor={(item) => item.name}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={['#9Bd35A', '#689F38']}
+              tintColor="#fff"
+              title="Actualizando registros..."
+              titleColor="#fff"
+            />
+          }
         />
       )}
 
