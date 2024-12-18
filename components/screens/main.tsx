@@ -11,7 +11,6 @@ const Main = () => {
   const [hoursWorked, setHoursWorked] = useState('');
 
   useEffect(() => {
-    // Función para actualizar la hora
     const updateStartTime = () => {
       const currentTime = new Date();
       let hours = currentTime.getHours();
@@ -22,17 +21,27 @@ const Main = () => {
       setStartTime(`${formattedHours}:${minutes} ${period}`);
     };
 
-    // Actualizar inmediatamente
     updateStartTime();
-
-    // Configurar un intervalo para actualizar cada minuto
-    const intervalId = setInterval(updateStartTime, 60000);
-
-    // Limpiar el intervalo cuando el componente se desmonte
+    const intervalId = setInterval(updateStartTime, 1000);
     return () => clearInterval(intervalId);
   }, []);
 
   const calculateEndTime = () => {
+    // Check if duration is provided
+    if (!duration.trim()) {
+      Alert.alert('Error', 'Por favor, ingrese la duración');
+      return;
+    }
+
+    // Check if duration is in correct format
+    const durationParts = duration.split(':');
+    if (durationParts.length !== 2 || 
+        isNaN(parseInt(durationParts[0], 10)) || 
+        isNaN(parseInt(durationParts[1], 10))) {
+      Alert.alert('Error', 'Formato de duración inválido. Use HH:MM');
+      return;
+    }
+
     const [startHour, startMinute] = startTime.split(':');
     const [hours, minutes] = duration.split(':').map(num => parseInt(num, 10));
 
@@ -56,6 +65,18 @@ const Main = () => {
   };
 
   const saveRecord = async () => {
+    // Check if duration is provided
+    if (!duration.trim()) {
+      Alert.alert('Error', 'Por favor, ingrese la duración');
+      return;
+    }
+
+    // Check if end time is calculated
+    if (!endTime) {
+      Alert.alert('Error', 'Primero calcule la hora de fin');
+      return;
+    }
+
     const name = `Registro ${new Date().toLocaleString()}`;
     const newRecord = {
       name,
@@ -69,6 +90,12 @@ const Main = () => {
       const records = storedRecords ? JSON.parse(storedRecords) : [];
       records.push(newRecord);
       await AsyncStorage.setItem('records', JSON.stringify(records));
+      
+      // Clear end time and hours worked after saving
+      setEndTime('');
+      setHoursWorked('');
+      setDuration(''); // Also clear duration
+
       Alert.alert('Registro guardado', 'El registro se ha guardado correctamente');
     } catch (error) {
       console.error('Error guardando el registro:', error);
@@ -77,6 +104,12 @@ const Main = () => {
   };
 
   const setAlarm = () => {
+    // Check if duration is provided
+    if (!duration.trim()) {
+      Alert.alert('Error', 'Por favor, ingrese la duración');
+      return;
+    }
+
     const [hours, minutes] = duration.split(':').map(num => parseInt(num, 10));
     const currentTime = new Date();
     const end = new Date(currentTime.getTime() + (hours * 60 + minutes) * 60000);
@@ -109,18 +142,30 @@ const Main = () => {
         onChangeText={setDuration}
       />
 
-      <TouchableOpacity style={[styles.button, isDarkMode && styles.darkButton]} onPress={calculateEndTime}>
+      <TouchableOpacity 
+        style={[styles.button, isDarkMode && styles.darkButton]} 
+        onPress={calculateEndTime}
+        disabled={!duration.trim()}
+      >
         <Text style={styles.buttonText}>Calcular Hora de Fin</Text>
       </TouchableOpacity>
 
       <Text style={[styles.resultText, isDarkMode && styles.darkText]}>Hora de Fin: {endTime}</Text>
       <Text style={[styles.resultText, isDarkMode && styles.darkText]}>Horas Trabajadas: {hoursWorked}</Text>
 
-      <TouchableOpacity style={[styles.button, styles.alarmButton]} onPress={setAlarm}>
+      <TouchableOpacity 
+        style={[styles.button, styles.alarmButton]} 
+        onPress={setAlarm}
+        disabled={!duration.trim()}
+      >
         <Text style={styles.buttonText}>Establecer Alarma</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={[styles.button, styles.saveButton]} onPress={saveRecord}>
+      <TouchableOpacity 
+        style={[styles.button, styles.saveButton]} 
+        onPress={saveRecord}
+        disabled={!duration.trim() || !endTime}
+      >
         <Text style={styles.buttonText}>Guardar Registro</Text>
       </TouchableOpacity>
     </View>
@@ -132,7 +177,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#222',
     padding: 20,
   },
   darkContainer: {
@@ -171,6 +215,7 @@ const styles = StyleSheet.create({
     marginTop: 15,
     width: '100%',
     alignItems: 'center',
+    opacity: 1,
   },
   darkButton: {
     backgroundColor: '#2e8b57',
