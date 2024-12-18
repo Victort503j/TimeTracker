@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, Alert, StatusBar, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useTheme } from '@/components/screens/themeContext'; 
+import { useTheme } from '@/components/screens/themeContext';
 
 const Main = () => {
   const { isDarkMode } = useTheme(); 
@@ -27,13 +27,11 @@ const Main = () => {
   }, []);
 
   const calculateEndTime = () => {
-    // Check if duration is provided
     if (!duration.trim()) {
       Alert.alert('Error', 'Por favor, ingrese la duración');
       return;
     }
 
-    // Check if duration is in correct format
     const durationParts = duration.split(':');
     if (durationParts.length !== 2 || 
         isNaN(parseInt(durationParts[0], 10)) || 
@@ -65,13 +63,11 @@ const Main = () => {
   };
 
   const saveRecord = async () => {
-    // Check if duration is provided
     if (!duration.trim()) {
       Alert.alert('Error', 'Por favor, ingrese la duración');
       return;
     }
 
-    // Check if end time is calculated
     if (!endTime) {
       Alert.alert('Error', 'Primero calcule la hora de fin');
       return;
@@ -90,11 +86,10 @@ const Main = () => {
       const records = storedRecords ? JSON.parse(storedRecords) : [];
       records.push(newRecord);
       await AsyncStorage.setItem('records', JSON.stringify(records));
-      
-      // Clear end time and hours worked after saving
+
       setEndTime('');
       setHoursWorked('');
-      setDuration(''); // Also clear duration
+      setDuration('');
 
       Alert.alert('Registro guardado', 'El registro se ha guardado correctamente');
     } catch (error) {
@@ -104,7 +99,6 @@ const Main = () => {
   };
 
   const setAlarm = () => {
-    // Check if duration is provided
     if (!duration.trim()) {
       Alert.alert('Error', 'Por favor, ingrese la duración');
       return;
@@ -185,7 +179,7 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 30,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#000',
     marginBottom: 40,
     textAlign: 'center',
   },
@@ -197,8 +191,8 @@ const styles = StyleSheet.create({
     borderColor: '#555',
     borderWidth: 1,
     borderRadius: 10,
-    backgroundColor: '#333',
-    color: '#fff',
+    backgroundColor: '#fff',
+    color: '#000',
     marginBottom: 20,
     width: '100%',
     paddingHorizontal: 20,
@@ -206,6 +200,7 @@ const styles = StyleSheet.create({
   },
   darkInput: {
     backgroundColor: '#444',
+    color: '#fff',
   },
   button: {
     backgroundColor: '#4CAF50',
@@ -215,7 +210,6 @@ const styles = StyleSheet.create({
     marginTop: 15,
     width: '100%',
     alignItems: 'center',
-    opacity: 1,
   },
   darkButton: {
     backgroundColor: '#2e8b57',
@@ -232,7 +226,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   resultText: {
-    color: '#fff',
     fontSize: 20,
     marginTop: 20,
     fontWeight: '600',

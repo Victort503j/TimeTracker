@@ -89,14 +89,14 @@ const Record = () => {
   const renderRecord = ({ item }: { item: RecordItem }) => (
     <TouchableOpacity
       onLongPress={() => handleLongPress(item)}
-      style={[styles.recordContainer, isDarkMode && styles.darkRecordContainer]}
+      style={[styles.recordContainer, isDarkMode ? styles.darkRecordContainer : null]}
     >
-      <Text style={[styles.recordName, isDarkMode && styles.darkText]}>{item.name}</Text>
-      <Text style={[styles.recordDate, isDarkMode && styles.darkText]}>{item.date}</Text>
-      <Text style={[styles.recordDuration, isDarkMode && styles.darkText]}>
+      <Text style={[styles.recordName, isDarkMode ? styles.darkText : null]}>{item.name}</Text>
+      <Text style={[styles.recordDate, isDarkMode ? styles.darkText : null]}>{item.date}</Text>
+      <Text style={[styles.recordDuration, isDarkMode ? styles.darkText : null]}>
         Duración: {item.duration}
       </Text>
-      <Text style={[styles.recordEndTime, isDarkMode && styles.darkText]}>
+      <Text style={[styles.recordEndTime, isDarkMode ? styles.darkText : null]}>
         Hora de Fin: {item.endTime}
       </Text>
     </TouchableOpacity>
@@ -105,11 +105,11 @@ const Record = () => {
   const totalPages = Math.ceil(allRecords.length / recordsPerPage);
 
   return (
-    <View style={[styles.container, isDarkMode && styles.darkContainer]}>
-      <Text style={[styles.headerText, isDarkMode && styles.darkText]}>Historial de Registros</Text>
+    <View style={[styles.container, isDarkMode ? styles.darkContainer : null]}>
+      <Text style={[styles.headerText, isDarkMode ? styles.darkText : null]}>Historial de Registros</Text>
 
       {records.length === 0 ? (
-        <Text style={[styles.noRecordsText, isDarkMode && styles.darkText]}>No hay registros</Text>
+        <Text style={[styles.noRecordsText, isDarkMode ? styles.darkText : null]}>No hay registros</Text>
       ) : (
         <FlatList
           data={records}
@@ -128,11 +128,11 @@ const Record = () => {
         />
       )}
 
-      <View style={styles.paginationContainer}>
+      <View style={[styles.paginationContainer, isDarkMode ? styles.darkPaginationContainer : null]}>
         <TouchableOpacity
           onPress={() => loadPageRecords(page - 1)}
           disabled={page === 1}
-          style={[styles.pageButton, page === 1 && styles.disabledButton]}
+          style={[styles.pageButton, page === 1 ? styles.disabledButton : null]}
         >
           <Ionicons 
             name="arrow-back" 
@@ -141,12 +141,12 @@ const Record = () => {
           />
         </TouchableOpacity>
         
-        <Text style={styles.pageText}>Página {page} de {totalPages}</Text>
+        <Text style={[styles.pageText, isDarkMode ? styles.darkText : null]}>Página {page} de {totalPages}</Text>
 
         <TouchableOpacity
           onPress={() => loadPageRecords(page + 1)}
           disabled={page === totalPages || (page * recordsPerPage >= allRecords.length)}
-          style={[styles.pageButton, page === totalPages && styles.disabledButton]}
+          style={[styles.pageButton, page === totalPages ? styles.disabledButton : null]}
         >
           <Ionicons 
             name="arrow-forward" 
@@ -165,23 +165,24 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
     padding: 20,
+    backgroundColor: '#fff',  // Fondo blanco por defecto para modo claro
   },
   darkContainer: {
-    backgroundColor: '#333',
+    backgroundColor: '#333',  // Fondo oscuro para el modo oscuro
   },
   headerText: {
     fontSize: 30,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#333', // Gris oscuro para modo claro
     marginBottom: 20,
     textAlign: 'center',
   },
   darkText: {
-    color: '#fff',
+    color: '#fff',  // Blanco para texto en modo oscuro
   },
   noRecordsText: {
     fontSize: 18,
-    color: '#fff',
+    color: '#666',  // Gris claro para modo claro
     marginTop: 20,
     fontStyle: 'italic',
   },
@@ -189,10 +190,18 @@ const styles = StyleSheet.create({
     width: '100%',
     padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#444',
+    borderBottomColor: '#ddd',  // Bordes más suaves en modo claro
+    backgroundColor: '#f9f9f9', // Fondo suave para los elementos en modo claro
+    borderRadius: 8,
+    marginBottom: 10,
+    shadowColor: '#000',  // Sombra suave en modo claro
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   darkRecordContainer: {
-    borderBottomColor: '#666',
+    backgroundColor: '#444',  // Fondo oscuro para elementos en modo oscuro
+    borderBottomColor: '#666',  // Bordes más suaves en modo oscuro
   },
   recordName: {
     fontSize: 18,
@@ -217,8 +226,11 @@ const styles = StyleSheet.create({
     marginTop: 20,
     paddingVertical: 15,
     width: '100%',
-    backgroundColor: '#444',
+    backgroundColor: '#f0f0f0',  // Fondo gris claro para la paginación
     borderRadius: 50,
+  },
+  darkPaginationContainer: {
+    backgroundColor: '#555',  // Fondo gris oscuro para la paginación en modo oscuro
   },
   pageButton: {
     paddingVertical: 8,
@@ -227,15 +239,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginHorizontal: 10,
-    backgroundColor: '#007BFF',
+    backgroundColor: '#999',  // Fondo gris suave para los botones
   },
   disabledButton: {
-    backgroundColor: '#555',
+    backgroundColor: '#ccc',  // Fondo gris claro para botones deshabilitados
   },
   pageText: {
-    color: '#fff',
+    color: '#333',  // Gris oscuro para el texto de la paginación
     fontSize: 16,
   },
 });
+
 
 export default Record;
